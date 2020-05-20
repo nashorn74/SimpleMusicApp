@@ -76,6 +76,7 @@ class AlbumListViewController: UIViewController, UICollectionViewDataSource, UIC
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        DummyData.currentSelectedAlbum = indexPath.item
         Timer.scheduledTimer(timeInterval: 0.2, target: self, selector: #selector(switchToAlbumInfoTabCont), userInfo: nil,repeats: false)
     }
 }

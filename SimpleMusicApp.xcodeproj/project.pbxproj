@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		753836BD24728FDC001B11EF /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753836BC24728FDC001B11EF /* DummyData.swift */; };
 		753836BF24729F2E001B11EF /* AlbumListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753836BE24729F2E001B11EF /* AlbumListItemView.swift */; };
+		753836C124753C38001B11EF /* SongListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753836C024753C38001B11EF /* SongListItemView.swift */; };
 		759DE33F2470625A00ECE298 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 759DE33E2470625A00ECE298 /* AppDelegate.swift */; };
 		759DE3412470625A00ECE298 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 759DE3402470625A00ECE298 /* SceneDelegate.swift */; };
 		759DE3432470625A00ECE298 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 759DE3422470625A00ECE298 /* ViewController.swift */; };
@@ -44,6 +45,7 @@
 /* Begin PBXFileReference section */
 		753836BC24728FDC001B11EF /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyData.swift; sourceTree = "<group>"; };
 		753836BE24729F2E001B11EF /* AlbumListItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumListItemView.swift; sourceTree = "<group>"; };
+		753836C024753C38001B11EF /* SongListItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongListItemView.swift; sourceTree = "<group>"; };
 		759DE33B2470625A00ECE298 /* SimpleMusicApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimpleMusicApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		759DE33E2470625A00ECE298 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		759DE3402470625A00ECE298 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -125,6 +127,7 @@
 				759DE37A2470708000ECE298 /* AlbumListViewController.swift */,
 				759DE37C2470750500ECE298 /* AlbumInfoViewController.swift */,
 				753836BE24729F2E001B11EF /* AlbumListItemView.swift */,
+				753836C024753C38001B11EF /* SongListItemView.swift */,
 			);
 			path = SimpleMusicApp;
 			sourceTree = "<group>";
@@ -305,6 +308,7 @@
 				759DE33F2470625A00ECE298 /* AppDelegate.swift in Sources */,
 				759DE3412470625A00ECE298 /* SceneDelegate.swift in Sources */,
 				753836BF24729F2E001B11EF /* AlbumListItemView.swift in Sources */,
+				753836C124753C38001B11EF /* SongListItemView.swift in Sources */,
 				759DE37B2470708000ECE298 /* AlbumListViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

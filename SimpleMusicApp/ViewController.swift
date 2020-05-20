@@ -43,6 +43,8 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        DummyData.viewController = self
+        
         popupMusicPlayer.isHidden = true
         
         volumeSlider.maximumValue = MAX_VOLUME
@@ -218,33 +220,69 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
     }
     
     func startPrevSong() -> Bool {
-        if (DummyData.currentSelectedSong > 0) {
-            DummyData.currentSelectedSong = DummyData.currentSelectedSong - 1
-            
-            setUpPlayer()
-            setupNowPlaying()
-            play()
-            
-            return true
+        let shuffledList:[Int] = DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] as! [Int]
+        if shuffledList.count > 0 {
+            var found:Bool = false
+            for index in shuffledList.reversed() {
+                if found {
+                    DummyData.currentSelectedSong = index
+                    
+                    setUpPlayer()
+                    setupNowPlaying()
+                    play()
+                    
+                    return true
+                }
+                if index == DummyData.currentSelectedSong {
+                    found = true
+                }
+            }
         } else {
-            return false
+            if (DummyData.currentSelectedSong > 0) {
+                DummyData.currentSelectedSong = DummyData.currentSelectedSong - 1
+                
+                setUpPlayer()
+                setupNowPlaying()
+                play()
+                
+                return true
+            }
         }
+        return false
     }
     
     func startNextSong() -> Bool {
         let size:Int = (DummyData.albumList[
             DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]]).count
-        if (DummyData.currentSelectedSong < size - 1) {
-            DummyData.currentSelectedSong = DummyData.currentSelectedSong + 1
-            
-            setUpPlayer()
-            setupNowPlaying()
-            play()
-            
-            return true
+        let shuffledList:[Int] = DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] as! [Int]
+        if shuffledList.count > 0 {
+            var found:Bool = false
+            for index in shuffledList {
+                if found {
+                    DummyData.currentSelectedSong = index
+                    
+                    setUpPlayer()
+                    setupNowPlaying()
+                    play()
+                    
+                    return true
+                }
+                if index == DummyData.currentSelectedSong {
+                    found = true
+                }
+            }
         } else {
-            return false
+            if (DummyData.currentSelectedSong < size - 1) {
+                DummyData.currentSelectedSong = DummyData.currentSelectedSong + 1
+                
+                setUpPlayer()
+                setupNowPlaying()
+                play()
+                
+                return true
+            }
         }
+        return false
     }
     
     func skipBackward(_ event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {

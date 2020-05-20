@@ -7,8 +7,10 @@
 //
 
 import Foundation
+import UIKit
 
 struct DummyData {
+    static var viewController:UIViewController? = nil
     static var currentSelectedAlbum:Int = 0
     static var currentSelectedSong:Int = 0
     static var albumList:[[String:Any]] = [
@@ -33,7 +35,8 @@ struct DummyData {
                     "songName": "SONG 4",
                     "songFile": "g01.mp3"
                 ]
-            ]
+            ],
+            "suffledSongList": []
         ],
         [
             "albumTitle": "ALBUM 2",
@@ -56,7 +59,8 @@ struct DummyData {
                     "songName": "SONG 2-4",
                     "songFile": "g01.mp3"
                 ]
-            ]
+            ],
+            "suffledSongList": []
         ],
         [
             "albumTitle": "ALBUM 3",
@@ -79,7 +83,8 @@ struct DummyData {
                     "songName": "SONG 3-4",
                     "songFile": "g01.mp3"
                 ]
-            ]
+            ],
+            "suffledSongList": []
         ],
         [
             "albumTitle": "ALBUM 4",
@@ -102,7 +107,8 @@ struct DummyData {
                     "songName": "SONG 4-4",
                     "songFile": "g01.mp3"
                 ]
-            ]
+            ],
+            "suffledSongList": []
         ],
         [
             "albumTitle": "ALBUM 5",
@@ -125,7 +131,8 @@ struct DummyData {
                     "songName": "SONG 5-4",
                     "songFile": "g01.mp3"
                 ]
-            ]
+            ],
+            "suffledSongList": []
         ],
         [
             "albumTitle": "ALBUM 6",
@@ -148,7 +155,8 @@ struct DummyData {
                     "songName": "SONG 6-4",
                     "songFile": "g01.mp3"
                 ]
-            ]
+            ],
+            "suffledSongList": []
         ]
     ]
 }
