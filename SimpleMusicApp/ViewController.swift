@@ -10,26 +10,67 @@ import UIKit
 import AVFoundation
 import MediaPlayer
 
+extension String {
+
+    func fileName() -> String {
+        return NSURL(fileURLWithPath: self).deletingPathExtension?.lastPathComponent ?? ""
+    }
+
+    func fileExtension() -> String {
+        return NSURL(fileURLWithPath: self).pathExtension ?? ""
+    }
+}
+
 class ViewController: UIViewController, AVAudioPlayerDelegate {
 
     @IBOutlet weak var minimizedPlayPauseButton: UIButton!
     @IBOutlet weak var playPauseButton: UIButton!
     @IBOutlet weak var minimizedMusicPlayer: UIView!
     @IBOutlet weak var popupMusicPlayer: UIView!
+    @IBOutlet weak var minimizedSongTitle: UILabel!
+    @IBOutlet weak var minimizedArtistName: UILabel!
+    @IBOutlet weak var popupSongTitle: UILabel!
+    @IBOutlet weak var popupArtistName: UILabel!
+    @IBOutlet weak var progressPlay: UIProgressView!
+    @IBOutlet weak var currentTimeLabel: UILabel!
+    @IBOutlet weak var endTimeLabel: UILabel!
+    @IBOutlet weak var volumeSlider: UISlider!
     
     var player = AVAudioPlayer()
+    let MAX_VOLUME : Float = 10.0
+    var progressTimer : Timer!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         popupMusicPlayer.isHidden = true
-      
+        
+        volumeSlider.maximumValue = MAX_VOLUME
+        volumeSlider.value = 1.0
+
         setUpPlayer()
         setupRemoteTransportControls()
         setupNowPlaying()
         setupNotifications()
     }
+    
+    func convertNSTimeInterval2String(_ time:TimeInterval) -> String {
+        let min = Int(time/60)
+        let sec = Int(time.truncatingRemainder(dividingBy: 60))
+        let strTime = String(format: "%02d:%02d",min,sec)
+        return strTime
+    }
+    
+    @objc func updatePlayTime() -> Void {
+        currentTimeLabel.text = convertNSTimeInterval2String(player.currentTime)
+        progressPlay.progress = Float(player.currentTime/player.duration)
+    }
 
+    let timePlayerSelector:Selector = #selector(ViewController.updatePlayTime)
+    @IBAction func changeVolume(_ sender: Any) {
+        player.volume = volumeSlider.value
+    }
+    
     @IBAction func onStart(_ sender: Any) {
         //MusicPlayer.shared.startBackgroundMusic()
         if (player.isPlaying) {
@@ -46,6 +87,7 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
         player.currentTime = 0
         minimizedPlayPauseButton.setTitle("Play", for: UIControl.State.normal)
         playPauseButton.setTitle("Play", for: UIControl.State.normal)
+        progressTimer.invalidate()
     }
         
     @IBAction func onOpen(_ sender: Any) {
@@ -57,50 +99,89 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
         popupMusicPlayer.isHidden = true
         minimizedMusicPlayer.isHidden = false
     }
+    @IBAction func onPrev(_ sender: Any) {
+        if (startPrevSong()) {
+            print("prev")
+        }
+    }
+    @IBAction func onNext(_ sender: Any) {
+        if (startNextSong()) {
+            print("next")
+        }
+    }
     
     // MARK: Setups
     func setUpPlayer() {
+        let file = (DummyData.albumList[
+        DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]]) [DummyData.currentSelectedSong]["songFile"] as! String
+        let fileNameWithoutExtension = file.fileName()
+        let fileExtension = file.fileExtension()
+        
         do {
-            let url = Bundle.main.url(forResource: "song", withExtension: "mp3")
+            let url = Bundle.main.url(forResource: fileNameWithoutExtension, withExtension: fileExtension)
             player = try AVAudioPlayer(contentsOf: url!)
             player.delegate = self
             player.prepareToPlay()
+            player.volume = volumeSlider.value
+            endTimeLabel.text = convertNSTimeInterval2String(player.duration)
         } catch let error as NSError {
             print("Failed to init audio player: \(error)")
         }
     }
     
     func setupRemoteTransportControls() {
-      // Get the shared MPRemoteCommandCenter
-      let commandCenter = MPRemoteCommandCenter.shared()
-      
-      // Add handler for Play Command
-      commandCenter.playCommand.addTarget { [unowned self] event in
-        print("Play command - is playing: \(self.player.isPlaying)")
-        if !self.player.isPlaying {
-          self.play()
-          return .success
+        // Get the shared MPRemoteCommandCenter
+        let commandCenter = MPRemoteCommandCenter.shared()
+
+        // Add handler for Play Command
+        commandCenter.playCommand.addTarget { [unowned self] event in
+            print("Play command - is playing: \(self.player.isPlaying)")
+            if !self.player.isPlaying {
+              self.play()
+              return .success
+            }
+            return .commandFailed
         }
-        return .commandFailed
-      }
-      
-      // Add handler for Pause Command
-      commandCenter.pauseCommand.addTarget { [unowned self] event in
-        print("Pause command - is playing: \(self.player.isPlaying)")
-        if self.player.isPlaying {
-          self.pause()
-          return .success
+
+        // Add handler for Pause Command
+        commandCenter.pauseCommand.addTarget { [unowned self] event in
+            print("Pause command - is playing: \(self.player.isPlaying)")
+            if self.player.isPlaying {
+              self.pause()
+              return .success
+            }
+            return .commandFailed
         }
-        return .commandFailed
-      }
+        
+        let skipBackwardCommand = commandCenter.skipBackwardCommand
+        //skipBackwardCommand.isEnabled = true
+        skipBackwardCommand.addTarget(handler: skipBackward)
+        //skipBackwardCommand.preferredIntervals = [42]
+
+        let skipForwardCommand = commandCenter.skipForwardCommand
+        //skipForwardCommand.isEnabled = true
+        skipForwardCommand.addTarget(handler: skipForward)
+        //skipForwardCommand.preferredIntervals = [42]
     }
     
     func setupNowPlaying() {
+        let songList = (DummyData.albumList[
+        DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]])
       // Define Now Playing Info
       var nowPlayingInfo = [String : Any]()
-      nowPlayingInfo[MPMediaItemPropertyTitle] = "Unstoppable"
+        nowPlayingInfo[MPMediaItemPropertyTitle] =  songList[DummyData.currentSelectedSong]["songName"] as! String
       
-      if let image = UIImage(named: "artist") {
+        let artistName = (DummyData.albumList[
+        DummyData.currentSelectedAlbum]["artistName"] as! String)
+        let albumName = (DummyData.albumList[
+        DummyData.currentSelectedAlbum]["albumTitle"] as! String)
+        minimizedSongTitle.text = songList[DummyData.currentSelectedSong]["songName"] as? String
+        minimizedArtistName.text = "\(artistName) - \(albumName)"
+        popupSongTitle.text = songList[DummyData.currentSelectedSong]["songName"] as? String
+        popupArtistName.text = "\(artistName) - \(albumName)"
+        
+      if let image = UIImage(named: (DummyData.albumList[
+        DummyData.currentSelectedAlbum]["albumImage"] as! String)) {
         nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { size in
           return image
         }
@@ -134,6 +215,64 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
                                      selector: #selector(handleRouteChange),
                                      name: AVAudioSession.routeChangeNotification,
                                      object: nil)
+    }
+    
+    func startPrevSong() -> Bool {
+        if (DummyData.currentSelectedSong > 0) {
+            DummyData.currentSelectedSong = DummyData.currentSelectedSong - 1
+            
+            setUpPlayer()
+            setupNowPlaying()
+            play()
+            
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    func startNextSong() -> Bool {
+        let size:Int = (DummyData.albumList[
+            DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]]).count
+        if (DummyData.currentSelectedSong < size - 1) {
+            DummyData.currentSelectedSong = DummyData.currentSelectedSong + 1
+            
+            setUpPlayer()
+            setupNowPlaying()
+            play()
+            
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    func skipBackward(_ event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
+        if (startPrevSong()) {
+            print("prev")
+        }
+
+        /*guard let command = event.command as? MPSkipIntervalCommand else {
+            return .noSuchContent
+        }
+        let interval = command.preferredIntervals[0]
+        print(interval) //Output: 42*/
+
+        return .success
+    }
+
+    func skipForward(_ event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
+        if (startNextSong()) {
+            print("next")
+        }
+
+        /*guard let command = event.command as? MPSkipIntervalCommand else {
+            return .noSuchContent
+        }
+        let interval = command.preferredIntervals[0]
+        print(interval) //Output: 42*/
+
+        return .success
     }
     
     // MARK: Handle Notifications
@@ -200,6 +339,7 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
         minimizedPlayPauseButton.setTitle("Pause", for: UIControl.State.normal)
         playPauseButton.setTitle("Pause", for: UIControl.State.normal)
         updateNowPlaying(isPause: false)
+        progressTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: timePlayerSelector, userInfo: nil, repeats: true)
         print("Play - current time: \(player.currentTime) - is playing: \(player.isPlaying)")
     }
     
@@ -214,10 +354,13 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
     // MARK: AVAudioPlayerDelegate
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
       print("Audio player did finish playing: \(flag)")
+        progressTimer.invalidate()
       if (flag) {
-        updateNowPlaying(isPause: true)
-        minimizedPlayPauseButton.setTitle("Play", for: UIControl.State.normal)
-        playPauseButton.setTitle("Play", for: UIControl.State.normal)
+        if (!startNextSong()) {
+            updateNowPlaying(isPause: true)
+            minimizedPlayPauseButton.setTitle("Play", for: UIControl.State.normal)
+            playPauseButton.setTitle("Play", for: UIControl.State.normal)
+        }
       }
     }
 }

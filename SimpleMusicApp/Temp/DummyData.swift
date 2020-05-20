@@ -9,6 +9,8 @@
 import Foundation
 
 struct DummyData {
+    static var currentSelectedAlbum:Int = 0
+    static var currentSelectedSong:Int = 0
     static var albumList:[[String:Any]] = [
         [
             "albumTitle": "ALBUM 1",
