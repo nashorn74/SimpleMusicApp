@@ -22,6 +22,18 @@ extension String {
     }
 }
 
+//Update system volume
+extension MPVolumeView {
+    static func setVolume(_ volume: Float) {
+        let volumeView = MPVolumeView()
+        let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
+
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
+            slider?.value = volume
+        }
+    }
+}
+
 class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSetupViewControllerDelegate {
 
     @IBOutlet weak var minimizedPlayPauseButton: UIButton!
@@ -40,8 +52,7 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
     @IBOutlet weak var minimizedAlbumImage: UIImageView!
     @IBOutlet weak var popupAlbumImage: UIImageView!
     
-    var player = AVAudioPlayer()
-    let MAX_VOLUME : Float = 10.0
+    let MAX_VOLUME : Float = 1.0
     var progressTimer : Timer!
     
     override func viewDidLoad() {
@@ -53,7 +64,7 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
         popupMusicPlayer.isHidden = true
         
         volumeSlider.maximumValue = MAX_VOLUME
-        volumeSlider.value = 1.0
+        //volumeSlider.value = 0.1
         
         SKCloudServiceController.requestAuthorization({
         (status: SKCloudServiceAuthorizationStatus) in
@@ -76,6 +87,38 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
                 print("default")
             }
         })
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateNowPlayingInfo), name: NSNotification.Name.MPMusicPlayerControllerNowPlayingItemDidChange, object: nil)
+        
+        progressTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: timePlayerSelector, userInfo: nil, repeats: true)
+    }
+            
+    @objc func updatePlayTime() -> Void {
+        let nowPlaying = MPMusicPlayerController.applicationQueuePlayer.nowPlayingItem
+        if
+            let playbackDuration:TimeInterval = (nowPlaying?.playbackDuration),
+            let playbackTime:TimeInterval = (MPMusicPlayerController.applicationQueuePlayer.currentPlaybackTime) {
+            currentTimeLabel.text = convertNSTimeInterval2String(playbackTime)
+            progressPlay.progress = Float(playbackTime/playbackDuration)
+        }
+    }
+    
+    @objc func updateNowPlayingInfo(){
+        let nowPlaying = MPMusicPlayerController.applicationQueuePlayer.nowPlayingItem
+        if let albumArtist:String = (nowPlaying?.albumArtist),
+            let albumTitle:String = (nowPlaying?.albumTitle),
+            let songName:String = (nowPlaying?.title),
+            let playbackDuration:TimeInterval = (nowPlaying?.playbackDuration) {
+            print("Currently Playing: \(albumArtist) \(albumTitle)")
+            print("\(playbackDuration)")
+            endTimeLabel.text = convertNSTimeInterval2String(playbackDuration)
+            
+            minimizedSongTitle.text = songName
+            minimizedArtistName.text = "\(albumArtist) - \(albumTitle)"
+            popupSongTitle.text = songName
+            popupArtistName.text = "\(albumArtist) - \(albumTitle)"
+        }
+        
     }
     
     let developerToken = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1ZNFAzVDcyR1YifQ.eyJpYXQiOjE1OTAwNjM4NzgsImV4cCI6MTYwNTYxNTg3OCwiaXNzIjoiWUFEVFRYS1c5OCJ9.75jQ7ELVNhNC5PzgDl83pQSLlT9pxPm5EiZ2iI57-4gfyJHG3JirXQfoZvViKI5Npu3ZmMTzwrakH2CpVcVtgQ"
@@ -182,6 +225,14 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
                             let name:String = songObject["name"] as! String
                             let artwork:[String:Any] = songObject["artwork"] as! [String:Any]
                             var url:String = artwork["url"] as! String
+                            let playParams:[String:Any] = songObject["playParams"] as! [String:Any]
+                            var songFile:String = ""
+                            if let catalogId:String = playParams["catalogId"] as? String {
+                                songFile = catalogId
+                            }
+                            if let purchasedId:String = playParams["purchasedId"] as? String {
+                                songFile = purchasedId
+                            }
                             url = url.replacingOccurrences(of: "{w}", with: "1200")
                             url = url.replacingOccurrences(of: "{h}", with: "1200")
                             //print("\(albumName) \(artistName) \(name)")
@@ -190,7 +241,7 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
                             let songInfo:[String:Any] = [
                                 "albumTitle": albumName,
                                 "songName": name,
-                                "songFile": "g01.mp3"
+                                "songFile": songFile
                             ]
                             tempSongList.append(songInfo)
 
@@ -236,10 +287,8 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
                         if DummyData.albumListViewController != nil {
                             (DummyData.albumListViewController as! AlbumListViewController).refreshAlbumList()
                         }
-                        self.setUpPlayer()
-                        self.setupRemoteTransportControls()
+                        self.prepareToPlay()
                         self.setupNowPlaying()
-                        self.setupNotifications()
                     }
                 }
             }
@@ -274,20 +323,16 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
         let strTime = String(format: "%02d:%02d",min,sec)
         return strTime
     }
-    
-    @objc func updatePlayTime() -> Void {
-        currentTimeLabel.text = convertNSTimeInterval2String(player.currentTime)
-        progressPlay.progress = Float(player.currentTime/player.duration)
-    }
 
     let timePlayerSelector:Selector = #selector(ViewController.updatePlayTime)
     @IBAction func changeVolume(_ sender: Any) {
-        player.volume = volumeSlider.value
+        //player.volume = volumeSlider.value
+        MPVolumeView.setVolume(volumeSlider.value)
     }
     
     @IBAction func onStart(_ sender: Any) {
-        //MusicPlayer.shared.startBackgroundMusic()
-        if (player.isPlaying) {
+        let player = MPMusicPlayerController.applicationQueuePlayer
+        if (player.playbackState == MPMusicPlaybackState.playing) {
             pause()
         }
         else {
@@ -296,9 +341,8 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
     }
     
     @IBAction func onStop(_ sender: Any) {
-        //MusicPlayer.shared.stopBackgroundMusic()
+        let player = MPMusicPlayerController.applicationQueuePlayer
         player.stop()
-        player.currentTime = 0
         minimizedPlayPauseButton.setTitle("Play", for: UIControl.State.normal)
         playPauseButton.setTitle("Play", for: UIControl.State.normal)
         progressTimer.invalidate()
@@ -325,59 +369,25 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
     }
     
     // MARK: Setups
-    func setUpPlayer() {
-        let file = (DummyData.albumList[
-        DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]]) [DummyData.currentSelectedSong]["songFile"] as! String
-        let fileNameWithoutExtension = file.fileName()
-        let fileExtension = file.fileExtension()
-        
-        do {
-            let url = Bundle.main.url(forResource: fileNameWithoutExtension, withExtension: fileExtension)
-            player = try AVAudioPlayer(contentsOf: url!)
-            player.delegate = self
-            player.prepareToPlay()
-            player.volume = volumeSlider.value
-            endTimeLabel.text = convertNSTimeInterval2String(player.duration)
-        } catch let error as NSError {
-            print("Failed to init audio player: \(error)")
-        }
-    }
-    
-    func setupRemoteTransportControls() {
-        // Get the shared MPRemoteCommandCenter
-        let commandCenter = MPRemoteCommandCenter.shared()
-
-        // Add handler for Play Command
-        commandCenter.playCommand.addTarget { [unowned self] event in
-            print("Play command - is playing: \(self.player.isPlaying)")
-            if !self.player.isPlaying {
-              self.play()
-              return .success
+    func prepareToPlay() {
+        let player = MPMusicPlayerController.applicationQueuePlayer
+        var storeIds: [String] = []
+        let shuffledList:[Int] = DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] as! [Int]
+        if shuffledList.count > 0 {
+            for songNumber in shuffledList {
+                let songList:[[String:Any]] = DummyData.albumList[DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]]
+                let songInfo:[String:Any] = songList[songNumber]
+                storeIds.append(songInfo["songFile"] as! String)
             }
-            return .commandFailed
-        }
-
-        // Add handler for Pause Command
-        commandCenter.pauseCommand.addTarget { [unowned self] event in
-            print("Pause command - is playing: \(self.player.isPlaying)")
-            if self.player.isPlaying {
-              self.pause()
-              return .success
+        } else {
+            for songInfo in DummyData.albumList[DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]] {
+                storeIds.append(songInfo["songFile"] as! String)
             }
-            return .commandFailed
         }
         
-        let skipBackwardCommand = commandCenter.skipBackwardCommand
-        //skipBackwardCommand.isEnabled = true
-        skipBackwardCommand.addTarget(handler: skipBackward)
-        //skipBackwardCommand.preferredIntervals = [42]
-
-        let skipForwardCommand = commandCenter.skipForwardCommand
-        //skipForwardCommand.isEnabled = true
-        skipForwardCommand.addTarget(handler: skipForward)
-        //skipForwardCommand.preferredIntervals = [42]
+        let queue  = MPMusicPlayerStoreQueueDescriptor(storeIDs: storeIds)
+        player.setQueue(with: queue)
     }
-    
     func setupNowPlaying() {
         let songList = (DummyData.albumList[
         DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]])
@@ -398,7 +408,7 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
         
         if let data = try? Data(contentsOf: URL(string:(DummyData.albumList[
             DummyData.currentSelectedAlbum]["albumImage"] as! String))!) {
-            if var image = UIImage(data: data) {
+            if let image = UIImage(data: data) {
                 DispatchQueue.main.async {
                     nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { size in
                       return image
@@ -408,218 +418,47 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
                 }
             }
         }
-        
-      nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime
-      nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = player.duration
-      nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
-      
-      // Set the metadata
-      //MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
     func updateNowPlaying(isPause: Bool) {
       // Define Now Playing Info
       var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo!
       
-      nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime
+        let playbackTime:TimeInterval = (MPMusicPlayerController.applicationQueuePlayer.currentPlaybackTime)
+      nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = playbackTime
       nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = isPause ? 0 : 1
       
       // Set the metadata
       MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
-    
-    func setupNotifications() {
-      let notificationCenter = NotificationCenter.default
-      notificationCenter.addObserver(self,
-                                     selector: #selector(handleInterruption),
-                                     name: AVAudioSession.interruptionNotification,
-                                     object: nil)
-      notificationCenter.addObserver(self,
-                                     selector: #selector(handleRouteChange),
-                                     name: AVAudioSession.routeChangeNotification,
-                                     object: nil)
-    }
-    
+        
     func startPrevSong() -> Bool {
-        let shuffledList:[Int] = DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] as! [Int]
-        if shuffledList.count > 0 {
-            var found:Bool = false
-            for index in shuffledList.reversed() {
-                if found {
-                    DummyData.currentSelectedSong = index
-                    
-                    setUpPlayer()
-                    setupNowPlaying()
-                    play()
-                    
-                    return true
-                }
-                if index == DummyData.currentSelectedSong {
-                    found = true
-                }
-            }
-        } else {
-            if (DummyData.currentSelectedSong > 0) {
-                DummyData.currentSelectedSong = DummyData.currentSelectedSong - 1
-                
-                setUpPlayer()
-                setupNowPlaying()
-                play()
-                
-                return true
-            }
-        }
-        return false
+        let player = MPMusicPlayerController.applicationQueuePlayer
+        player.skipToPreviousItem()
+        return true
     }
     
     func startNextSong() -> Bool {
-        let size:Int = (DummyData.albumList[
-            DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]]).count
-        let shuffledList:[Int] = DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] as! [Int]
-        if shuffledList.count > 0 {
-            var found:Bool = false
-            for index in shuffledList {
-                if found {
-                    DummyData.currentSelectedSong = index
-                    
-                    setUpPlayer()
-                    setupNowPlaying()
-                    play()
-                    
-                    return true
-                }
-                if index == DummyData.currentSelectedSong {
-                    found = true
-                }
-            }
-        } else {
-            if (DummyData.currentSelectedSong < size - 1) {
-                DummyData.currentSelectedSong = DummyData.currentSelectedSong + 1
-                
-                setUpPlayer()
-                setupNowPlaying()
-                play()
-                
-                return true
-            }
-        }
-        return false
-    }
-    
-    func skipBackward(_ event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
-        if (startPrevSong()) {
-            print("prev")
-        }
-
-        /*guard let command = event.command as? MPSkipIntervalCommand else {
-            return .noSuchContent
-        }
-        let interval = command.preferredIntervals[0]
-        print(interval) //Output: 42*/
-
-        return .success
-    }
-
-    func skipForward(_ event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
-        if (startNextSong()) {
-            print("next")
-        }
-
-        /*guard let command = event.command as? MPSkipIntervalCommand else {
-            return .noSuchContent
-        }
-        let interval = command.preferredIntervals[0]
-        print(interval) //Output: 42*/
-
-        return .success
-    }
-    
-    // MARK: Handle Notifications
-    @objc func handleRouteChange(notification: Notification) {
-      guard let userInfo = notification.userInfo,
-        let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
-        let reason = AVAudioSession.RouteChangeReason(rawValue:reasonValue) else {
-          return
-      }
-      switch reason {
-      case .newDeviceAvailable:
-        let session = AVAudioSession.sharedInstance()
-        for output in session.currentRoute.outputs where output.portType == AVAudioSession.Port.headphones {
-          print("headphones connected")
-          DispatchQueue.main.sync {
-            self.play()
-          }
-          break
-        }
-      case .oldDeviceUnavailable:
-        if let previousRoute =
-          userInfo[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription {
-          for output in previousRoute.outputs where output.portType == AVAudioSession.Port.headphones {
-            print("headphones disconnected")
-            DispatchQueue.main.sync {
-              self.pause()
-            }
-            break
-          }
-        }
-      default: ()
-      }
-    }
-    
-    @objc func handleInterruption(notification: Notification) {
-      guard let userInfo = notification.userInfo,
-        let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-        let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-          return
-      }
-      
-      if type == .began {
-        print("Interruption began")
-        // Interruption began, take appropriate actions
-      }
-      else if type == .ended {
-        if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
-          let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-          if options.contains(.shouldResume) {
-            // Interruption Ended - playback should resume
-            print("Interruption Ended - playback should resume")
-            play()
-          } else {
-            // Interruption Ended - playback should NOT resume
-            print("Interruption Ended - playback should NOT resume")
-          }
-        }
-      }
+        let player = MPMusicPlayerController.applicationQueuePlayer
+        player.skipToNextItem()
+        return true
     }
     
     // MARK: Actions
     func play() {
+        let player = MPMusicPlayerController.applicationQueuePlayer
         player.play()
+        
         minimizedPlayPauseButton.setTitle("Pause", for: UIControl.State.normal)
         playPauseButton.setTitle("Pause", for: UIControl.State.normal)
         updateNowPlaying(isPause: false)
-        progressTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: timePlayerSelector, userInfo: nil, repeats: true)
-        print("Play - current time: \(player.currentTime) - is playing: \(player.isPlaying)")
     }
     
     func pause() {
+        let player = MPMusicPlayerController.applicationQueuePlayer
         player.pause()
         minimizedPlayPauseButton.setTitle("Play", for: UIControl.State.normal)
         playPauseButton.setTitle("Play", for: UIControl.State.normal)
         updateNowPlaying(isPause: true)
-        print("Pause - current time: \(player.currentTime) - is playing: \(player.isPlaying)")
-    }
-        
-    // MARK: AVAudioPlayerDelegate
-    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-      print("Audio player did finish playing: \(flag)")
-        progressTimer.invalidate()
-      if (flag) {
-        if (!startNextSong()) {
-            updateNowPlaying(isPause: true)
-            minimizedPlayPauseButton.setTitle("Play", for: UIControl.State.normal)
-            playPauseButton.setTitle("Play", for: UIControl.State.normal)
-        }
-      }
     }
 }

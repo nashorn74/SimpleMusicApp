@@ -37,9 +37,9 @@ class AlbumInfoViewController: UIViewController, UITableViewDelegate, UITableVie
         
         DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] = []
         DummyData.currentSelectedSong = indexPath.item
-        (DummyData.viewController as! ViewController).setUpPlayer()
+        (DummyData.viewController as! ViewController).prepareToPlay()
         (DummyData.viewController as! ViewController).setupNowPlaying()
-        (DummyData.viewController as! ViewController).onStart(self)
+        (DummyData.viewController as! ViewController).play()
     }
     
     @IBAction func onStart(_ sender: Any) {
@@ -49,9 +49,9 @@ class AlbumInfoViewController: UIViewController, UITableViewDelegate, UITableVie
         
         DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] = []
         DummyData.currentSelectedSong = 0
-        (DummyData.viewController as! ViewController).setUpPlayer()
+        (DummyData.viewController as! ViewController).prepareToPlay()
         (DummyData.viewController as! ViewController).setupNowPlaying()
-        (DummyData.viewController as! ViewController).onStart(self)
+        (DummyData.viewController as! ViewController).play()
     }
     
     @IBAction func onShuffle(_ sender: Any) {
@@ -82,9 +82,9 @@ class AlbumInfoViewController: UIViewController, UITableViewDelegate, UITableVie
         
         DummyData.currentSelectedSong = shuffledList[0]
         DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] = shuffledList
-        (DummyData.viewController as! ViewController).setUpPlayer()
+        (DummyData.viewController as! ViewController).prepareToPlay()
         (DummyData.viewController as! ViewController).setupNowPlaying()
-        (DummyData.viewController as! ViewController).onStart(self)
+        (DummyData.viewController as! ViewController).play()
     }
     
     @IBOutlet weak var albumTitleLabel: UILabel!
