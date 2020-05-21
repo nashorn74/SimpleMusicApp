@@ -11,6 +11,7 @@ import UIKit
 
 struct DummyData {
     static var viewController:UIViewController? = nil
+    static var albumListViewController:UIViewController? = nil
     static var currentSelectedAlbum:Int = 0
     static var currentSelectedSong:Int = 0
     static var albumList:[[String:Any]] = [

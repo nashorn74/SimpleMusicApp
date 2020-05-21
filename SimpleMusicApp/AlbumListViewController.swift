@@ -16,20 +16,40 @@ extension UIImage {
     }
 }
 
+extension UIImageView {
+    func load(url: URL, size: CGSize) {
+        DispatchQueue.global().async { [weak self] in
+            if let data = try? Data(contentsOf: url) {
+                if var image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        image = image.resized(to: size)
+                        self?.image = image
+                    }
+                }
+            }
+        }
+    }
+}
+
 class AlbumListViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     
     let reuseIdentifier = "CellIdentifer";
 
-
+    @IBOutlet weak var albumCollectionView: UICollectionView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        DummyData.albumListViewController = self
     }
     
     @objc func switchToAlbumInfoTabCont(){
         tabBarController!.selectedIndex = 1
     }
     
+    func refreshAlbumList() {
+        albumCollectionView.reloadData()
+    }
     
     //UICollectionViewDelegateFlowLayout methods
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAtIndex section: Int) -> CGFloat
@@ -63,12 +83,10 @@ class AlbumListViewController: UIViewController, UICollectionViewDataSource, UIC
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! AlbumListItemView
-    
-        let size = (self.view.frame.width/2-7) * 0.75
         
         let albumInfo = DummyData.albumList[indexPath.item]
-        let image = UIImage(named: albumInfo["albumImage"] as! String)
-        cell.albumImage.image = image!.resized(to: CGSize(width: size, height: size))
+        let size = (self.view.frame.width/2-7) * 0.75
+        cell.albumImage.load(url: URL(string:albumInfo["albumImage"] as! String)!, size: CGSize(width: size, height: size))
         cell.albumTitle.text = (albumInfo["albumTitle"] as! String)
         cell.artistName.text = (albumInfo["artistName"] as! String)
         

@@ -65,7 +65,7 @@
                                         <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="artist.png" translatesAutoresizingMaskIntoConstraints="NO" id="NhH-sl-vLy">
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="NhH-sl-vLy">
                                         <rect key="frame" x="314" y="0.0" width="100" height="100"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="100" id="2gq-GS-0LK"/>
@@ -139,7 +139,7 @@
                                                 <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
-                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="artist.png" translatesAutoresizingMaskIntoConstraints="NO" id="gWQ-ww-bou">
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gWQ-ww-bou">
                                                 <rect key="frame" x="57" y="60" width="300" height="300"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="300" id="GGP-fo-ess"/>
@@ -291,11 +291,13 @@
                     <connections>
                         <outlet property="currentTimeLabel" destination="9Ih-vh-UeT" id="Bzv-Dl-C0E"/>
                         <outlet property="endTimeLabel" destination="xOB-Ee-1S0" id="Y33-Ge-9WR"/>
+                        <outlet property="minimizedAlbumImage" destination="NhH-sl-vLy" id="pfS-4M-ITx"/>
                         <outlet property="minimizedArtistName" destination="W6p-ys-2GJ" id="goZ-bH-4qS"/>
                         <outlet property="minimizedMusicPlayer" destination="MEj-vz-6CC" id="CdE-vq-4nc"/>
                         <outlet property="minimizedPlayPauseButton" destination="aat-gt-iA6" id="VhG-GA-W44"/>
                         <outlet property="minimizedSongTitle" destination="m4q-rV-ebG" id="B23-Qi-tav"/>
                         <outlet property="playPauseButton" destination="d3F-RF-IU8" id="aBc-5m-gJs"/>
+                        <outlet property="popupAlbumImage" destination="gWQ-ww-bou" id="hev-9o-Uj7"/>
                         <outlet property="popupArtistName" destination="8SS-aC-jg6" id="dnG-Aa-G1z"/>
                         <outlet property="popupMusicPlayer" destination="xrA-7n-hy5" id="NJ0-fv-Bg1"/>
                         <outlet property="popupSongTitle" destination="pgU-hB-VXo" id="n2s-0A-JFo"/>
@@ -325,7 +327,7 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cnh-QK-Yex">
                                 <rect key="frame" x="0.0" y="82" width="414" height="200"/>
                                 <subviews>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="artist.png" translatesAutoresizingMaskIntoConstraints="NO" id="hyJ-8k-Ok0">
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="hyJ-8k-Ok0">
                                         <rect key="frame" x="20" y="20" width="100" height="100"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="100" id="QBk-fR-7Rr"/>
@@ -526,20 +528,22 @@
                                                             </constraints>
                                                         </imageView>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Qjl-ae-MJY">
-                                                            <rect key="frame" x="0.0" y="150" width="142" height="24"/>
+                                                            <rect key="frame" x="1" y="150" width="140" height="20"/>
                                                             <constraints>
-                                                                <constraint firstAttribute="width" secondItem="Qjl-ae-MJY" secondAttribute="height" multiplier="71:12" id="hEY-cx-H1b"/>
+                                                                <constraint firstAttribute="width" constant="140" id="KpF-Gm-WKh"/>
+                                                                <constraint firstAttribute="height" constant="20" id="k4r-nY-6wO"/>
                                                             </constraints>
-                                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
+                                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aHs-FA-B1d">
-                                                            <rect key="frame" x="0.0" y="179" width="142" height="21"/>
+                                                            <rect key="frame" x="1" y="180" width="140" height="20"/>
                                                             <constraints>
-                                                                <constraint firstAttribute="width" secondItem="aHs-FA-B1d" secondAttribute="height" multiplier="142:21" id="7DJ-Id-n6p"/>
+                                                                <constraint firstAttribute="height" constant="20" id="TWU-JC-Lvc"/>
+                                                                <constraint firstAttribute="width" constant="140" id="ddd-ba-LR1"/>
                                                             </constraints>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
                                                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
@@ -589,6 +593,9 @@
                         <viewLayoutGuide key="safeArea" id="GsF-Lb-rB0"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Item 1" id="x0P-Qk-MhP"/>
+                    <connections>
+                        <outlet property="albumCollectionView" destination="AT3-Ne-qzj" id="1uY-Ii-ZdU"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="jSr-Aw-j5C" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -613,7 +620,4 @@
             <point key="canvasLocation" x="874" y="115"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="artist.png" width="228" height="228"/>
-    </resources>
 </document>

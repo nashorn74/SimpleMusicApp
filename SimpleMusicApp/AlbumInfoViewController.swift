@@ -101,6 +101,7 @@ class AlbumInfoViewController: UIViewController, UITableViewDelegate, UITableVie
         let albumInfo = DummyData.albumList[DummyData.currentSelectedAlbum]
         albumTitleLabel.text = albumInfo["albumTitle"] as? String
         artistNameLabel.text = albumInfo["artistName"] as? String
+        albumImage.load(url: URL(string:albumInfo["albumImage"] as! String)!, size: CGSize(width: 100, height: 100))
         tableView.reloadData()
     }
     

@@ -9,6 +9,7 @@
 import UIKit
 import AVFoundation
 import MediaPlayer
+import StoreKit
 
 extension String {
 
@@ -21,7 +22,7 @@ extension String {
     }
 }
 
-class ViewController: UIViewController, AVAudioPlayerDelegate {
+class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSetupViewControllerDelegate {
 
     @IBOutlet weak var minimizedPlayPauseButton: UIButton!
     @IBOutlet weak var playPauseButton: UIButton!
@@ -36,6 +37,9 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
     @IBOutlet weak var endTimeLabel: UILabel!
     @IBOutlet weak var volumeSlider: UISlider!
     
+    @IBOutlet weak var minimizedAlbumImage: UIImageView!
+    @IBOutlet weak var popupAlbumImage: UIImageView!
+    
     var player = AVAudioPlayer()
     let MAX_VOLUME : Float = 10.0
     var progressTimer : Timer!
@@ -44,16 +48,224 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
         super.viewDidLoad()
         
         DummyData.viewController = self
+        DummyData.albumList = []
         
         popupMusicPlayer.isHidden = true
         
         volumeSlider.maximumValue = MAX_VOLUME
         volumeSlider.value = 1.0
+        
+        SKCloudServiceController.requestAuthorization({
+        (status: SKCloudServiceAuthorizationStatus) in
+            switch(status)
+            {
+            case .notDetermined:
+                print("Access cannot be determined.")
+                break
+            case .denied:
+                print("Access denied or restricted.")
+                break
+            case .restricted:
+                print("Access denied or restricted.")
+                break
+            case .authorized:
+                print("Access granted.")
+                self.initAppleMusic()
+                break
+            @unknown default:
+                print("default")
+            }
+        })
+    }
+    
+    let developerToken = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1ZNFAzVDcyR1YifQ.eyJpYXQiOjE1OTAwNjM4NzgsImV4cCI6MTYwNTYxNTg3OCwiaXNzIjoiWUFEVFRYS1c5OCJ9.75jQ7ELVNhNC5PzgDl83pQSLlT9pxPm5EiZ2iI57-4gfyJHG3JirXQfoZvViKI5Npu3ZmMTzwrakH2CpVcVtgQ"
+    
+    func initAppleMusic() {
+        
+        let controller = SKCloudServiceController()
+        
+        controller.requestCapabilities { capabilities, error in
+            if capabilities.contains(.musicCatalogPlayback) {
+                // User has Apple Music account
+                print("User has Apple Music account")
+                
+                controller.requestUserToken(forDeveloperToken: self.developerToken) { userToken, error in
+                    // Use this value for recommendation requests.
+                    print(userToken!)
+                    self.loadSongList(userToken: userToken!)
+                }
+            } else if capabilities.contains(.musicCatalogSubscriptionEligible) {
+                // User can sign up to Apple Music
+                print("User can sign up to Apple Music")
+                self.showAppleMusicSignup()
+            }
+        }
+    }
+    
+    /*
+    {
+        attributes =     {
+            canEdit = 1;
+            dateAdded = "2020-05-16T17:51:59Z";
+            hasCatalog = 1;
+            name = "The Beatles";
+            playParams =         {
+                globalId = "pl.u-d2b05dXtMr02M2";
+                id = "p.qQXL6x5tAJBYAY";
+                isLibrary = 1;
+                kind = playlist;
+            };
+        };
+        href = "/v1/me/library/playlists/p.qQXL6x5tAJBYAY";
+        id = "p.qQXL6x5tAJBYAY";
+        type = "library-playlists";
+    }*/
+    
+    func loadSongList(userToken:String) {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host   = "api.music.apple.com"
+        components.path   = "/v1/me/library/songs"
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: "50"),
+        ]
+        let url = components.url
+        var request = URLRequest(url: url!)
+        request.setValue(userToken, forHTTPHeaderField: "Music-User-Token")
+        request.setValue("Bearer \(self.developerToken)", forHTTPHeaderField: "Authorization")
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
 
-        setUpPlayer()
-        setupRemoteTransportControls()
-        setupNowPlaying()
-        setupNotifications()
+            guard let data = data else {
+                return
+            }
+            do {
+                let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+                /*{
+                    attributes =     {
+                        albumName = "1 (2015 Version)";
+                        artistName = "The Beatles";
+                        artwork =         {
+                            height = 1200;
+                            url = "https://is5-ssl.mzstatic.com/image/thumb/Music118/v4/52/54/0d/52540d65-3476-bb86-832f-16277137e44b/00602547657725.rgb.jpg/{w}x{h}bb.jpeg";
+                            width = 1200;
+                        };
+                        durationInMillis = 152920;
+                        genreNames =         (
+                            Rock
+                        );
+                        name = "A Hard Day's Night (2015 Stereo Mix)";
+                        playParams =         {
+                            catalogId = 1440833544;
+                            id = "i.zpZVNL1tm713m3";
+                            isLibrary = 1;
+                            kind = song;
+                            reporting = 1;
+                        };
+                        releaseDate = "1964-07-10";
+                        trackNumber = 6;
+                    };
+                    href = "/v1/me/library/songs/i.zpZVNL1tm713m3";
+                    id = "i.zpZVNL1tm713m3";
+                    type = "library-songs";
+                },*/
+                DispatchQueue.main.async {
+                    DummyData.albumList.removeAll()
+                    var tempAlbumList:[[String:Any]] = []
+                    var tempSongList:[[String:Any]] = []
+                    if let songList:[[String:Any]] = json!["data"] as? [[String:Any]] {
+                        print("\(songList.count)")
+                        for song in songList {
+                            let songObject:[String:Any] = song["attributes"] as! [String:Any]
+                            let albumName:String = songObject["albumName"] as! String
+                            let artistName:String = songObject["artistName"] as! String
+                            let name:String = songObject["name"] as! String
+                            let artwork:[String:Any] = songObject["artwork"] as! [String:Any]
+                            var url:String = artwork["url"] as! String
+                            url = url.replacingOccurrences(of: "{w}", with: "1200")
+                            url = url.replacingOccurrences(of: "{h}", with: "1200")
+                            //print("\(albumName) \(artistName) \(name)")
+                            //print("\(url)")
+                            
+                            let songInfo:[String:Any] = [
+                                "albumTitle": albumName,
+                                "songName": name,
+                                "songFile": "g01.mp3"
+                            ]
+                            tempSongList.append(songInfo)
+
+                            //check album
+                            var isExist:Bool = false
+                            for album in tempAlbumList {
+                                if album["albumTitle"] as! String == albumName {
+                                    isExist = true
+                                    break;
+                                }
+                            }
+                            if isExist == false {
+                                tempAlbumList.append([
+                                    "albumTitle": albumName,
+                                    "albumImage": url,
+                                    "artistName": artistName,
+                                    "songList": [songInfo],
+                                    "suffledSongList": []
+                                ])
+                            }
+                        }
+                        
+                        // Convert data to DummyData
+                        for album in tempAlbumList {
+                            var songList:[[String:Any]] = []
+                            for song in tempSongList {
+                                if album["albumTitle"] as! String == song["albumTitle"] as! String {
+                                    songList.append([
+                                        "songName": song["songName"] as! String,
+                                        "songFile": song["songFile"] as! String
+                                    ])
+                                }
+                            }
+                            DummyData.albumList.append([
+                                "albumTitle": album["albumTitle"] as! String,
+                                "albumImage": album["albumImage"] as! String,
+                                "artistName": album["artistName"] as! String,
+                                "songList": songList,
+                                "suffledSongList": []
+                            ])
+                        }
+                        
+                        if DummyData.albumListViewController != nil {
+                            (DummyData.albumListViewController as! AlbumListViewController).refreshAlbumList()
+                        }
+                        self.setUpPlayer()
+                        self.setupRemoteTransportControls()
+                        self.setupNowPlaying()
+                        self.setupNotifications()
+                    }
+                }
+            }
+            catch {
+            }
+        }
+        task.resume()
+    }
+    
+    let affiliateToken:String = ""
+    func showAppleMusicSignup() {
+        let vc = SKCloudServiceSetupViewController()
+        vc.delegate = self
+
+        let options: [SKCloudServiceSetupOptionsKey: Any] = [
+            .action: SKCloudServiceSetupAction.subscribe,
+            .affiliateToken: affiliateToken,
+            .messageIdentifier: SKCloudServiceSetupMessageIdentifier.playMusic
+        ]
+            
+        vc.load(options: options) { success, error in
+            if success {
+                self.present(vc, animated: true)
+            }
+        }
+
     }
     
     func convertNSTimeInterval2String(_ time:TimeInterval) -> String {
@@ -181,19 +393,28 @@ class ViewController: UIViewController, AVAudioPlayerDelegate {
         minimizedArtistName.text = "\(artistName) - \(albumName)"
         popupSongTitle.text = songList[DummyData.currentSelectedSong]["songName"] as? String
         popupArtistName.text = "\(artistName) - \(albumName)"
+        minimizedAlbumImage.load(url: URL(string:(DummyData.albumList[DummyData.currentSelectedAlbum]["albumImage"] as! String))!, size: CGSize(width: 50, height: 50))
+        popupAlbumImage.load(url: URL(string:(DummyData.albumList[DummyData.currentSelectedAlbum]["albumImage"] as! String))!, size: CGSize(width: 300, height: 300))
         
-      if let image = UIImage(named: (DummyData.albumList[
-        DummyData.currentSelectedAlbum]["albumImage"] as! String)) {
-        nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { size in
-          return image
+        if let data = try? Data(contentsOf: URL(string:(DummyData.albumList[
+            DummyData.currentSelectedAlbum]["albumImage"] as! String))!) {
+            if var image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { size in
+                      return image
+                    }
+                    // Set the metadata
+                    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+                }
+            }
         }
-      }
+        
       nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime
       nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = player.duration
       nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
       
       // Set the metadata
-      MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+      //MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
     func updateNowPlaying(isPause: Bool) {
