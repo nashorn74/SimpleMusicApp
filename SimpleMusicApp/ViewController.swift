@@ -287,7 +287,7 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
                         if DummyData.albumListViewController != nil {
                             (DummyData.albumListViewController as! AlbumListViewController).refreshAlbumList()
                         }
-                        self.prepareToPlay()
+                        self.prepareToPlay(shuffle: false)
                         self.setupNowPlaying()
                     }
                 }
@@ -369,7 +369,7 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
     }
     
     // MARK: Setups
-    func prepareToPlay() {
+    func prepareToPlay(shuffle:Bool) {
         let player = MPMusicPlayerController.applicationQueuePlayer
         var storeIds: [String] = []
         let shuffledList:[Int] = DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] as! [Int]
@@ -380,13 +380,25 @@ class ViewController: UIViewController, AVAudioPlayerDelegate, SKCloudServiceSet
                 storeIds.append(songInfo["songFile"] as! String)
             }
         } else {
-            for songInfo in DummyData.albumList[DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]] {
-                storeIds.append(songInfo["songFile"] as! String)
+            for (index,songInfo) in (DummyData.albumList[DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]]).enumerated() {
+                if index >= DummyData.currentSelectedSong {
+                    storeIds.append(songInfo["songFile"] as! String)
+                }
+            }
+            for (index,songInfo) in (DummyData.albumList[DummyData.currentSelectedAlbum]["songList"] as! [[String:Any]]).enumerated() {
+                if index < DummyData.currentSelectedSong {
+                    storeIds.append(songInfo["songFile"] as! String)
+                }
             }
         }
         
         let queue  = MPMusicPlayerStoreQueueDescriptor(storeIDs: storeIds)
         player.setQueue(with: queue)
+        if shuffle {
+            player.shuffleMode = MPMusicShuffleMode.default
+        } else {
+            player.shuffleMode = MPMusicShuffleMode.off
+        }
     }
     func setupNowPlaying() {
         let songList = (DummyData.albumList[

@@ -36,7 +36,7 @@
                                             <action selector="onStart:" destination="BYZ-38-t0r" eventType="touchUpInside" id="mQt-ep-uKw"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1yb-hp-4ud">
+                                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1yb-hp-4ud">
                                         <rect key="frame" x="70" y="35" width="50" height="30"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="30" id="0Wg-la-S5y"/>
@@ -147,7 +147,7 @@
                                                 </constraints>
                                             </imageView>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="d3F-RF-IU8">
-                                                <rect key="frame" x="152" y="380" width="50" height="30"/>
+                                                <rect key="frame" x="182" y="380" width="50" height="30"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="50" id="Vf0-cb-dco"/>
                                                     <constraint firstAttribute="height" constant="30" id="sTr-18-Efr"/>
@@ -157,8 +157,8 @@
                                                     <action selector="onStart:" destination="BYZ-38-t0r" eventType="touchUpInside" id="jng-Mp-D6Q"/>
                                                 </connections>
                                             </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IgC-0Y-ZIU">
-                                                <rect key="frame" x="212" y="380" width="50" height="30"/>
+                                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IgC-0Y-ZIU">
+                                                <rect key="frame" x="182" y="380" width="50" height="30"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="50" id="DXU-Qd-bpA"/>
                                                     <constraint firstAttribute="height" constant="30" id="M37-63-JKI"/>
@@ -169,7 +169,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Swe-ov-amY">
-                                                <rect key="frame" x="87" y="380" width="50" height="30"/>
+                                                <rect key="frame" x="117" y="380" width="50" height="30"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="30" id="5R5-WG-5Rg"/>
                                                     <constraint firstAttribute="width" constant="50" id="ShO-oT-Aqf"/>
@@ -180,7 +180,7 @@
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2cF-oE-TXd">
-                                                <rect key="frame" x="277" y="380" width="50" height="30"/>
+                                                <rect key="frame" x="247" y="380" width="50" height="30"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="30" id="jyK-ON-SQ6"/>
                                                     <constraint firstAttribute="width" constant="50" id="slX-5p-oux"/>
@@ -245,7 +245,7 @@
                                             <constraint firstItem="gWQ-ww-bou" firstAttribute="top" secondItem="RFq-KV-uPe" secondAttribute="top" constant="60" id="O8V-Nm-IyI"/>
                                             <constraint firstItem="Swe-ov-amY" firstAttribute="top" secondItem="gWQ-ww-bou" secondAttribute="bottom" constant="20" id="PcJ-Hd-4VC"/>
                                             <constraint firstItem="ypB-I9-zjk" firstAttribute="leading" secondItem="RFq-KV-uPe" secondAttribute="leading" constant="8" id="QMC-UM-HYg"/>
-                                            <constraint firstItem="IgC-0Y-ZIU" firstAttribute="centerX" secondItem="RFq-KV-uPe" secondAttribute="centerX" constant="30" id="QXJ-RR-CRH"/>
+                                            <constraint firstItem="IgC-0Y-ZIU" firstAttribute="centerX" secondItem="RFq-KV-uPe" secondAttribute="centerX" id="QXJ-RR-CRH"/>
                                             <constraint firstItem="gWQ-ww-bou" firstAttribute="centerX" secondItem="RFq-KV-uPe" secondAttribute="centerX" id="R53-i2-vSl"/>
                                             <constraint firstItem="2cF-oE-TXd" firstAttribute="top" secondItem="gWQ-ww-bou" secondAttribute="bottom" constant="20" id="TfK-ZH-6Bn"/>
                                             <constraint firstItem="pgU-hB-VXo" firstAttribute="top" secondItem="RFq-KV-uPe" secondAttribute="top" constant="5" id="WBO-at-YLu"/>
@@ -255,7 +255,7 @@
                                             <constraint firstItem="8KY-wl-30h" firstAttribute="top" secondItem="xOB-Ee-1S0" secondAttribute="bottom" constant="8" id="mIb-g8-6eK"/>
                                             <constraint firstItem="IgC-0Y-ZIU" firstAttribute="top" secondItem="gWQ-ww-bou" secondAttribute="bottom" constant="20" id="mqw-Lo-OvN"/>
                                             <constraint firstItem="Fvv-uI-GTp" firstAttribute="centerX" secondItem="RFq-KV-uPe" secondAttribute="centerX" id="rOq-QS-9db"/>
-                                            <constraint firstItem="d3F-RF-IU8" firstAttribute="centerX" secondItem="RFq-KV-uPe" secondAttribute="centerX" constant="-30" id="tWs-wB-QSP"/>
+                                            <constraint firstItem="d3F-RF-IU8" firstAttribute="centerX" secondItem="RFq-KV-uPe" secondAttribute="centerX" id="tWs-wB-QSP"/>
                                             <constraint firstItem="2cF-oE-TXd" firstAttribute="leading" secondItem="IgC-0Y-ZIU" secondAttribute="trailing" constant="15" id="zHS-j5-m3h"/>
                                         </constraints>
                                     </view>

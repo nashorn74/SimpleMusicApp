@@ -37,7 +37,7 @@ class AlbumInfoViewController: UIViewController, UITableViewDelegate, UITableVie
         
         DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] = []
         DummyData.currentSelectedSong = indexPath.item
-        (DummyData.viewController as! ViewController).prepareToPlay()
+        (DummyData.viewController as! ViewController).prepareToPlay(shuffle: false)
         (DummyData.viewController as! ViewController).setupNowPlaying()
         (DummyData.viewController as! ViewController).play()
     }
@@ -49,7 +49,7 @@ class AlbumInfoViewController: UIViewController, UITableViewDelegate, UITableVie
         
         DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] = []
         DummyData.currentSelectedSong = 0
-        (DummyData.viewController as! ViewController).prepareToPlay()
+        (DummyData.viewController as! ViewController).prepareToPlay(shuffle: false)
         (DummyData.viewController as! ViewController).setupNowPlaying()
         (DummyData.viewController as! ViewController).play()
     }
@@ -82,7 +82,7 @@ class AlbumInfoViewController: UIViewController, UITableViewDelegate, UITableVie
         
         DummyData.currentSelectedSong = shuffledList[0]
         DummyData.albumList[DummyData.currentSelectedAlbum]["suffledSongList"] = shuffledList
-        (DummyData.viewController as! ViewController).prepareToPlay()
+        (DummyData.viewController as! ViewController).prepareToPlay(shuffle: true)
         (DummyData.viewController as! ViewController).setupNowPlaying()
         (DummyData.viewController as! ViewController).play()
     }
